@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tasveer
+      POSTGRES_PASSWORD: tasveer
+      POSTGRES_DB: tasveer
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tasveer -d tasveer"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT: production
+      # Override this in any real deployment.
+      SECRET_KEY: change-me-before-you-deploy-this
+      DATABASE_URL: postgresql+psycopg://tasveer:tasveer@db:5432/tasveer
+      CORS_ORIGINS: "*"
+      STORAGE_DIR: /app/storage/generated
+      IMAGE_PROVIDER: local
+    ports:
+      - "8000:8000"
+    volumes:
+      - generated:/app/storage/generated
+
+volumes:
+  pgdata:
+  generated:

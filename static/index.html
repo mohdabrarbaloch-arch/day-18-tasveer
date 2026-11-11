@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tasveer — where a sentence becomes a picture</title>
+<meta name="description" content="Tasveer is an image generation studio. Write a prompt, pick a style, and get a grid of pictures back in seconds. Reproducible seeds, eight styles, a public gallery." />
+<meta name="theme-color" content="#0b0b0d" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b0b0d'/%3E%3Cpath d='M9 10h14v2H9zm0 5h9v2H9zm0 5h14v2H9z' fill='%23e8a33d'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/static/styles.css?v=1.0.0" />
+</head>
+<body>
+
+<!-- ─────────────────────────  HEADER  ───────────────────────── -->
+<header class="topbar">
+  <a class="wordmark" href="#">
+    <span class="wordmark__mark" aria-hidden="true">
+      <svg viewBox="0 0 28 28" width="22" height="22">
+        <rect x="1" y="1" width="26" height="26" rx="7" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <path d="M7 9.5h14M7 14h9M7 18.5h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+    </span>
+    <span class="wordmark__text">Tasveer</span>
+    <span class="wordmark__dot" aria-hidden="true">.</span>
+  </a>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab is-active" data-view="studio" role="tab" aria-selected="true">Studio</button>
+    <button class="tab" data-view="gallery" role="tab" aria-selected="false">Gallery</button>
+  </nav>
+
+  <div class="topbar__right">
+    <div class="credits" id="creditsPill" hidden>
+      <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 4.6v6.8M5.6 6.6h4.8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      <span id="creditsValue">0</span>
+      <span class="credits__label">credits</span>
+    </div>
+    <button class="btn btn--ghost" id="authBtn">Sign in</button>
+    <button class="btn btn--solid" id="signupBtn">Get 60 free</button>
+    <div class="avatar" id="avatar" hidden>
+      <span id="avatarInitial">A</span>
+      <button class="avatar__menu" id="logoutBtn" title="Sign out">Sign out</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- ─────────────────────  STUDIO VIEW  ───────────────────── -->
+  <section class="view is-active" id="view-studio">
+
+    <aside class="composer" id="composer">
+
+      <div class="composer__head">
+        <h1 class="display">Say it in a<br/><em>sentence.</em></h1>
+        <p class="lede">Describe the picture you want. Tasveer turns the words into a grid of four.</p>
+      </div>
+
+      <form id="genForm" autocomplete="off">
+        <label class="field">
+          <span class="field__label">Prompt</span>
+          <textarea id="prompt" rows="4" maxlength="800"
+            placeholder="a lone lighthouse on a stormy coast at night, cinematic"
+            required></textarea>
+          <span class="field__hint"><span id="promptCount">0</span>/800</span>
+        </label>
+
+        <div class="field">
+          <span class="field__label">Style</span>
+          <div class="chips" id="styleChips" role="group" aria-label="Style"></div>
+        </div>
+
+        <div class="field">
+          <span class="field__label">Frame</span>
+          <div class="chips chips--ratio" id="ratioChips" role="group" aria-label="Aspect ratio"></div>
+        </div>
+
+        <details class="advanced">
+          <summary>Advanced</summary>
+          <div class="advanced__body">
+            <label class="field field--sm">
+              <span class="field__label">Negative prompt — what to avoid</span>
+              <input id="negative" type="text" maxlength="400" placeholder="blurry, text, watermark" />
+            </label>
+            <div class="row">
+              <label class="field field--sm">
+                <span class="field__label">Seed</span>
+                <input id="seed" type="number" min="0" max="2147483646" placeholder="random" />
+              </label>
+              <label class="field field--sm field--check">
+                <input id="publicToggle" type="checkbox" />
+                <span>Share to gallery</span>
+              </label>
+            </div>
+          </div>
+        </details>
+
+        <button class="btn btn--generate" id="generateBtn" type="submit">
+          <span class="btn__label">Generate</span>
+          <span class="btn__spinner" hidden></span>
+        </button>
+        <p class="composer__note">1 credit per grid · results are reproducible from the seed</p>
+      </form>
+    </aside>
+
+    <div class="stage" id="stage">
+      <!-- empty state -->
+      <div class="empty" id="emptyState">
+        <div class="empty__frame">
+          <svg viewBox="0 0 120 90" width="120" height="90" aria-hidden="true">
+            <rect x="1" y="1" width="118" height="88" rx="4" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="4 4" opacity=".4"/>
+            <circle cx="38" cy="33" r="9" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".55"/>
+            <path d="M8 76 L44 48 L70 68 L88 54 L112 76" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".55"/>
+          </svg>
+        </div>
+        <h2>Nothing on the wall yet</h2>
+        <p>Write a prompt on the left and press <strong>Generate</strong>. Four pictures land here in about a second.</p>
+        <div class="empty__seeds" id="seedPrompts"></div>
+      </div>
+
+      <!-- result grid -->
+      <div class="result" id="result" hidden>
+        <div class="result__head">
+          <div class="result__meta">
+            <span class="pill" id="resultStyle">cinematic</span>
+            <span class="pill pill--quiet" id="resultRatio">1:1</span>
+            <span class="pill pill--quiet" id="resultSeed">seed —</span>
+          </div>
+          <div class="result__actions">
+            <button class="btn btn--tiny" id="reuseSeed">Reuse seed</button>
+            <button class="btn btn--tiny" id="copyPrompt">Copy prompt</button>
+          </div>
+        </div>
+        <p class="result__prompt" id="resultPrompt"></p>
+        <div class="grid" id="imageGrid"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────────  GALLERY VIEW  ───────────────────── -->
+  <section class="view" id="view-gallery">
+    <div class="gallery__head">
+      <h1 class="display">The <em>gallery.</em></h1>
+      <p class="lede">Everything people chose to share, newest first.</p>
+      <div class="chips" id="galleryFilters" role="group" aria-label="Filter by style"></div>
+    </div>
+    <div class="grid grid--gallery" id="galleryGrid"></div>
+    <div class="gallery__more" id="galleryMoreWrap" hidden>
+      <button class="btn btn--ghost" id="galleryMore">Load more</button>
+    </div>
+    <p class="gallery__empty" id="galleryEmpty" hidden>No public pieces yet — be the first to share one.</p>
+  </section>
+
+  <!-- ─────────────────────  HISTORY  ───────────────────── -->
+  <section class="history" id="historySection" hidden>
+    <div class="history__head">
+      <h2>Your recent work</h2>
+      <span class="history__count" id="historyCount"></span>
+    </div>
+    <div class="history__strip" id="historyStrip"></div>
+  </section>
+</main>
+
+<!-- ─────────────────────────  LIGHTBOX  ───────────────────────── -->
+<div class="lightbox" id="lightbox" hidden>
+  <button class="lightbox__close" id="lightboxClose" aria-label="Close">&times;</button>
+  <figure class="lightbox__figure">
+    <img id="lightboxImg" alt="" />
+    <figcaption>
+      <span id="lightboxCaption"></span>
+      <a class="btn btn--tiny" id="lightboxDownload" download>Download</a>
+    </figcaption>
+  </figure>
+</div>
+
+<!-- ─────────────────────────  AUTH MODAL  ───────────────────────── -->
+<div class="modal" id="authModal" hidden>
+  <div class="modal__scrim" data-close></div>
+  <div class="modal__card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <button class="modal__close" data-close aria-label="Close">&times;</button>
+    <h2 id="authTitle">Sign in</h2>
+    <p class="modal__sub" id="authSub">Welcome back.</p>
+
+    <form id="authForm">
+      <label class="field field--sm" id="nameField" hidden>
+        <span class="field__label">Name</span>
+        <input id="authName" type="text" minlength="2" maxlength="80" placeholder="Ayesha Khan" />
+      </label>
+      <label class="field field--sm">
+        <span class="field__label">Email</span>
+        <input id="authEmail" type="email" required placeholder="you@example.com" />
+      </label>
+      <label class="field field--sm">
+        <span class="field__label">Password</span>
+        <input id="authPassword" type="password" minlength="8" required placeholder="at least 8 characters" />
+      </label>
+      <p class="modal__error" id="authError" hidden></p>
+      <button class="btn btn--generate" type="submit" id="authSubmit">Sign in</button>
+    </form>
+
+    <p class="modal__switch">
+      <span id="authSwitchText">New here?</span>
+      <button type="button" id="authSwitch">Create an account</button>
+    </p>
+    <p class="modal__demo">Demo account: <code>demo@tasveer.pk</code> / <code>tasveer123</code></p>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="/static/app.js?v=1.0.0"></script>
+</body>
+</html>
